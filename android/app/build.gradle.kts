@@ -8,7 +8,7 @@ plugins {
 android {
     namespace = "com.example.artihcus_internal_chat"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = "25.1.8937393"  // Using stable NDK version
+    // NDK version will be auto-detected by Flutter/Gradle if needed
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
