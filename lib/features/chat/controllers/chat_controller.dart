@@ -4,11 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/models/message.dart';
 import '../../../data/services/chat_service.dart';
-import '../../../data/services/mock/mock_chat_service.dart';
+import '../../../data/services/supabase/supabase_chat_service.dart';
 import '../../auth/controllers/auth_controller.dart';
 
 final chatServiceProvider = Provider<ChatService>((ref) {
-  final service = MockChatService();
+  final service = SupabaseChatService();
   ref.onDispose(service.dispose);
   return service;
 });

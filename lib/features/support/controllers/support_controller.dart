@@ -4,12 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../data/models/support_ticket.dart';
-import '../../../data/services/mock/mock_support_ticket_service.dart';
 import '../../../data/services/support_ticket_service.dart';
+import '../../../data/services/supabase/supabase_support_ticket_service.dart';
 import '../../auth/controllers/auth_controller.dart';
 
 final supportTicketServiceProvider = Provider<SupportTicketService>((ref) {
-  final service = MockSupportTicketService();
+  final service = SupabaseSupportTicketService();
   ref.onDispose(service.dispose);
   return service;
 });

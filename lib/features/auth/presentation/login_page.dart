@@ -15,20 +15,10 @@ class LoginPage extends ConsumerStatefulWidget {
 }
 
 class _LoginPageState extends ConsumerState<LoginPage> {
-  static const String _demoEmail = 'goutham@artihcus.com';
-  static const String _demoPassword = 'Welcome@2025';
-
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   String? _errorText;
-
-  @override
-  void initState() {
-    super.initState();
-    _emailController.text = _demoEmail;
-    _passwordController.text = _demoPassword;
-  }
 
   @override
   void dispose() {
@@ -45,10 +35,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     FocusScope.of(context).unfocus();
     setState(() => _errorText = null);
 
-    await ref.read(authControllerProvider.notifier).signIn(
-          email: _emailController.text,
-          password: _passwordController.text,
-        );
+    try {
+      await ref.read(authControllerProvider.notifier).signIn(
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+          );
+    } catch (e) {
+      // Error will be handled by the listener
+      if (mounted) {
+        setState(() => _errorText = e.toString().replaceFirst('Exception: ', ''));
+      }
+    }
   }
 
   @override
@@ -64,9 +61,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               context.go('/');
             }
           },
-          error: (error, _) {
+          error: (error, stackTrace) {
             if (!mounted) return;
-            setState(() => _errorText = error.toString());
+            // Extract a user-friendly error message
+            String errorMessage = error.toString();
+            if (errorMessage.startsWith('Exception: ')) {
+              errorMessage = errorMessage.substring(11);
+            } else if (errorMessage.contains(':')) {
+              // Try to extract the message after the colon
+              final parts = errorMessage.split(':');
+              if (parts.length > 1) {
+                errorMessage = parts.sublist(1).join(':').trim();
+              }
+            }
+            setState(() => _errorText = errorMessage);
           },
           loading: () {},
         );
@@ -114,35 +122,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           style: Theme.of(context).textTheme.bodyMedium,
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 16),
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .surfaceVariant
-                                .withOpacity(0.35),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .outline
-                                  .withOpacity(0.4),
-                            ),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Demo credentials',
-                                style: TextStyle(fontWeight: FontWeight.w600),
-                              ),
-                              SizedBox(height: 8),
-                              Text('Email: $_demoEmail'),
-                              Text('Password: $_demoPassword'),
-                            ],
-                          ),
-                        ),
                         const SizedBox(height: 24),
                         TextFormField(
                           controller: _emailController,
@@ -155,8 +134,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             if (value == null || value.isEmpty) {
                               return 'Email is required';
                             }
-                            if (!value.contains('@')) {
-                              return 'Enter a valid Artihcus email';
+                            final trimmedValue = value.trim().toLowerCase();
+                            if (!trimmedValue.contains('@')) {
+                              return 'Enter a valid email address';
+                            }
+                            // Basic email format validation
+                            final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+                            if (!emailRegex.hasMatch(trimmedValue)) {
+                              return 'Enter a valid email address';
                             }
                             return null;
                           },
@@ -206,6 +191,26 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               : const Text('Sign in'),
                         ),
                         const SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Don't have an account? ",
+                              style: TextStyle(color: Colors.grey[600]),
+                            ),
+                            TextButton(
+                              onPressed: () => context.go('/signup'),
+                              child: const Text(
+                                'Sign Up',
+                                style: TextStyle(
+                                  color: BrandColors.secondary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
                         TextButton(
                           onPressed: () {},
                           child: const Text('Need help? Contact IT Support'),

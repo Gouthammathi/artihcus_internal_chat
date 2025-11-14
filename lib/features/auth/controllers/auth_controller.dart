@@ -2,12 +2,13 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/constants/roles.dart';
 import '../../../data/models/employee.dart';
 import '../../../data/services/auth_service.dart';
-import '../../../data/services/mock/mock_auth_service.dart';
+import '../../../data/services/supabase/supabase_auth_service.dart';
 
 final authServiceProvider = Provider<AuthService>((ref) {
-  final service = MockAuthService();
+  final service = SupabaseAuthService();
   ref.onDispose(service.dispose);
   return service;
 });
@@ -38,6 +39,31 @@ class AuthController extends StateNotifier<AsyncValue<Employee?>> {
     state = const AsyncValue.loading();
     try {
       final employee = await _authService.signIn(email: email, password: password);
+      state = AsyncValue.data(employee);
+    } catch (error, stackTrace) {
+      state = AsyncValue.error(error, stackTrace);
+    }
+  }
+
+  Future<void> signUp({
+    required String email,
+    required String password,
+    required String firstName,
+    required String lastName,
+    String? department,
+    EmployeeRole role = EmployeeRole.employee,
+  }) async {
+    state = const AsyncValue.loading();
+    try {
+      final service = _authService as SupabaseAuthService;
+      final employee = await service.signUp(
+        email: email,
+        password: password,
+        firstName: firstName,
+        lastName: lastName,
+        department: department,
+        role: role,
+      );
       state = AsyncValue.data(employee);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);

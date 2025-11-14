@@ -3,11 +3,11 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/models/project.dart';
-import '../../../data/services/mock/mock_project_service.dart';
 import '../../../data/services/project_service.dart';
+import '../../../data/services/supabase/supabase_project_service.dart';
 
 final projectServiceProvider = Provider<ProjectService>((ref) {
-  final service = MockProjectService();
+  final service = SupabaseProjectService();
   ref.onDispose(service.dispose);
   return service;
 });

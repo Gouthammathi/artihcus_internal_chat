@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/auth/controllers/auth_controller.dart';
 import '../../features/auth/presentation/login_page.dart';
+import '../../features/auth/presentation/signup_page.dart';
 import '../../features/home/presentation/home_page.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -17,12 +18,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     initialLocation: '/login',
     redirect: (context, state) {
       final loggingIn = state.matchedLocation == '/login';
+      final signingUp = state.matchedLocation == '/signup';
 
       if (!isAuthenticated) {
-        return loggingIn ? null : '/login';
+        // Allow access to login and signup pages
+        if (loggingIn || signingUp) {
+          return null;
+        }
+        return '/login';
       }
 
-      if (loggingIn) {
+      // If authenticated and trying to access login/signup, redirect to home
+      if (loggingIn || signingUp) {
         return '/';
       }
 
@@ -36,10 +43,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             const NoTransitionPage(child: LoginPage()),
       ),
       GoRoute(
+        path: '/signup',
+        name: 'signup',
+        pageBuilder: (context, state) =>
+            const NoTransitionPage(child: SignupPage()),
+      ),
+      GoRoute(
         path: '/',
         name: 'home',
         pageBuilder: (context, state) =>
             const NoTransitionPage(child: HomePage()),
+      ),
+      GoRoute(
+        path: '/auth/callback',
+        name: 'auth-callback',
+        redirect: (context, state) {
+          // Handle email confirmation callback
+          return '/';
+        },
       ),
     ],
   );

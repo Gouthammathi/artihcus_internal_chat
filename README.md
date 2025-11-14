@@ -25,16 +25,53 @@ lib/
 
 ## Getting Started
 
+### Prerequisites
+
 1. Install Flutter 3.24 or later and enable required platforms (`flutter config --enable-<platform>-desktop` as needed).
-2. Fetch dependencies:
+2. Create a Supabase account at https://supabase.com (free tier available)
+
+### Setup Instructions
+
+1. **Set up Supabase backend**:
+   - Follow the detailed instructions in [SUPABASE_SETUP.md](SUPABASE_SETUP.md)
+   - Create a new Supabase project
+   - Run the SQL schema from `supabase_schema.sql`
+   - Get your project URL and anon key
+
+2. **Configure environment variables**:
+   - Create a `.env` file in the project root:
+     ```env
+     SUPABASE_URL=your_supabase_project_url
+     SUPABASE_ANON_KEY=your_supabase_anon_key
+     ```
+   - Replace with your actual Supabase credentials
+
+3. **Install dependencies**:
    ```bash
    flutter pub get
    ```
-3. Add the official Artihcus logo as `assets/images/artihcus_logo.png` (PNG, ≥512px width with transparent background).
-4. Run the app on your preferred device:
+
+4. **Add branding assets**:
+   - Add the official Artihcus logo as `assets/images/artihcus_logo.png` (PNG, ≥512px width with transparent background)
+
+5. **Create test users**:
+   - In Supabase dashboard, go to Authentication → Users
+   - Create test users with the following credentials:
+     - Email: `ck.reddy@artihcus.com`, Password: `Welcome@2025`, Role: `admin`
+     - See `SUPABASE_SETUP.md` for complete list
+
+6. **Run the app**:
    ```bash
    flutter run
    ```
+
+### Login Credentials (Test Users)
+
+After setting up users in Supabase, you can log in with:
+- **Admin**: `ck.reddy@artihcus.com` / `Welcome@2025`
+- **Manager**: `nara.reddy@artihcus.com` / `Welcome@2025`
+- **Lead**: `hari.andluru@artihcus.com` / `Welcome@2025`
+- **Employee**: `aaradhya.patel@artihcus.com` / `Welcome@2025`
 
 ## Branding
 
@@ -55,11 +92,15 @@ The color palette and branding cues were derived from the official Artihcus webs
 
 ## Roadmap
 
-- [ ] Replace mock services with secure backend integrations.
-- [ ] Add WebSocket-powered live updates for chat & announcements.
-- [ ] Introduce offline caching and retries.
-- [ ] Implement detailed analytics dashboards per role.
-- [ ] Harden security with MFA and device management policies.
+- [x] **Supabase Backend Integration** - Real-time database with PostgreSQL
+- [x] **Real-time Updates** - Live chat and announcements via Supabase Realtime
+- [x] **Row Level Security** - Fine-grained access control based on roles
+- [ ] Offline caching and sync with local storage
+- [ ] Push notifications via Firebase Cloud Messaging
+- [ ] File attachments for chat and support tickets
+- [ ] Implement detailed analytics dashboards per role
+- [ ] Harden security with MFA and device management policies
+- [ ] Add email notifications for important events
 
 ## Contributing
 

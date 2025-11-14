@@ -5,11 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/roles.dart';
 import '../../../data/models/announcement.dart';
 import '../../../data/services/announcement_service.dart';
-import '../../../data/services/mock/mock_announcement_service.dart';
+import '../../../data/services/supabase/supabase_announcement_service.dart';
 import '../../auth/controllers/auth_controller.dart';
 
 final announcementServiceProvider = Provider<AnnouncementService>((ref) {
-  final service = MockAnnouncementService();
+  final service = SupabaseAnnouncementService();
   ref.onDispose(service.dispose);
   return service;
 });
