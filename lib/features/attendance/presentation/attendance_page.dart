@@ -92,7 +92,7 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
   Widget _buildQrCodeView(BuildContext context, AttendanceQrData qrData) {
     return Container(
       key: ValueKey(qrData.checkInTime), // Key changes when QR refreshes
-      padding: const EdgeInsets.all(32),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
@@ -106,54 +106,79 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // QR Code
-          QrImageView(
-            data: qrData.toJsonString(),
-            version: QrVersions.auto,
-            size: 280,
-            backgroundColor: Colors.white,
-            errorCorrectionLevel: QrErrorCorrectLevel.M,
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final qrSize = constraints.maxWidth > 0 
+                  ? (constraints.maxWidth * 0.7).clamp(200.0, 280.0)
+                  : 250.0;
+              return QrImageView(
+                data: qrData.toJsonString(),
+                version: QrVersions.auto,
+                size: qrSize,
+                backgroundColor: Colors.white,
+                errorCorrectionLevel: QrErrorCorrectLevel.M,
+              );
+            },
           ),
           const SizedBox(height: 24),
           // Employee Info
-          Text(
-            qrData.firstName,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: BrandColors.primary,
-                ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Text(
+              qrData.firstName.toLowerCase(),
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: BrandColors.primary,
+                  ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
           const SizedBox(height: 8),
-          Text(
-            '${qrData.role.toUpperCase()}${qrData.department != null ? ' • ${qrData.department}' : ''}',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.black54,
-                ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Text(
+              '${qrData.role.toUpperCase()}${qrData.department != null ? ' • ${qrData.department}' : ''}',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.black54,
+                  ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
           const SizedBox(height: 24),
           // Refresh Countdown
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: BrandColors.primary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
                   Icons.refresh_rounded,
                   size: 16,
                   color: BrandColors.primary,
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  'Refreshes in $_refreshCountdown seconds',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: BrandColors.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                    'Refreshes in $_refreshCountdown seconds',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: BrandColors.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
             ),
@@ -211,16 +236,14 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
                 const SizedBox(height: 32),
                 if (user != null && _currentQrData != null)
                   Container(
+                    constraints: const BoxConstraints(maxWidth: double.infinity),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(32),
-                      gradient: const LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Color(0xFFF26A21),
-                          Color(0xFFFFA726),
-                        ],
+                      border: Border.all(
+                        color: BrandColors.primary,
+                        width: 2,
                       ),
+                      color: Colors.white,
                       boxShadow: [
                         BoxShadow(
                           color: BrandColors.primary.withOpacity(0.25),
@@ -229,7 +252,7 @@ class _AttendanceTabState extends ConsumerState<AttendanceTab> {
                         ),
                       ],
                     ),
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.all(20),
                     child: AnimatedSwitcher(
                       duration: const Duration(milliseconds: 300),
                       transitionBuilder: (child, animation) =>

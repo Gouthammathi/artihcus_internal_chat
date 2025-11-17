@@ -13,15 +13,6 @@ enum EmployeeRole {
     };
   }
 
-  bool get canBroadcastAnnouncements =>
-      this == EmployeeRole.lead || this == EmployeeRole.manager || this == EmployeeRole.admin;
-
-  bool get canManageProjects =>
-      this == EmployeeRole.manager || this == EmployeeRole.admin;
-
-  bool get canManageSupportTickets =>
-      this == EmployeeRole.lead || this == EmployeeRole.manager || this == EmployeeRole.admin;
-
   bool get isAdmin => this == EmployeeRole.admin;
 }
 
