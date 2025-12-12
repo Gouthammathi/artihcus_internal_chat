@@ -38,10 +38,15 @@ class AuthController extends StateNotifier<AsyncValue<Employee?>> {
   }) async {
     state = const AsyncValue.loading();
     try {
+      print('AuthController: Attempting sign in for $email');
       final employee = await _authService.signIn(email: email, password: password);
+      print('AuthController: Sign in successful, employee: ${employee?.email}');
       state = AsyncValue.data(employee);
     } catch (error, stackTrace) {
+      print('AuthController: Sign in error: $error');
+      print('AuthController: Stack trace: $stackTrace');
       state = AsyncValue.error(error, stackTrace);
+      rethrow;
     }
   }
 

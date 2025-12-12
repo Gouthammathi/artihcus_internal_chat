@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/constants/brand_colors.dart';
-import '../../../core/widgets/brand_logo.dart';
 import '../../../data/models/employee.dart';
 import '../controllers/auth_controller.dart';
 
@@ -19,6 +17,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   String? _errorText;
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -28,19 +27,24 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Future<void> _submit() async {
+    print('LoginPage: Submit button pressed');
     if (!_formKey.currentState!.validate()) {
+      print('LoginPage: Form validation failed');
       return;
     }
 
     FocusScope.of(context).unfocus();
     setState(() => _errorText = null);
 
+    print('LoginPage: Attempting to sign in with ${_emailController.text.trim()}');
     try {
       await ref.read(authControllerProvider.notifier).signIn(
             email: _emailController.text.trim(),
             password: _passwordController.text,
           );
+      print('LoginPage: Sign in completed');
     } catch (e) {
+      print('LoginPage: Sign in error caught: $e');
       // Error will be handled by the listener
       if (mounted) {
         setState(() => _errorText = e.toString().replaceFirst('Exception: ', ''));
@@ -83,147 +87,287 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     final authState = ref.watch(authControllerProvider);
     final isLoading = authState.isLoading;
+    final size = MediaQuery.of(context).size;
 
     return Scaffold(
       body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 500),
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-              child: Card(
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(32),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const Align(
-                          child: BrandLogo(height: 48),
-                        ),
-                        const SizedBox(height: 24),
-                        Text(
-                          'Welcome back',
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineSmall
-                              ?.copyWith(fontWeight: FontWeight.w700),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Sign in with your Artihcus email address to access the internal workspace.',
-                          style: Theme.of(context).textTheme.bodyMedium,
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 24),
-                        TextFormField(
-                          controller: _emailController,
-                          decoration: const InputDecoration(
-                            labelText: 'Work email',
-                            prefixIcon: Icon(Icons.alternate_email_outlined),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              ClipPath(
+                clipper: _WaveClipper(),
+                child: SizedBox(
+                  height: size.height * 0.5,
+                  width: double.infinity,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      const Image(
+                        image: AssetImage('assets/images/dessert.jpg'),
+                        fit: BoxFit.cover,
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.white.withOpacity(0.25),
+                            ],
                           ),
-                          keyboardType: TextInputType.emailAddress,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Email is required';
-                            }
-                            final trimmedValue = value.trim().toLowerCase();
-                            if (!trimmedValue.contains('@')) {
-                              return 'Enter a valid email address';
-                            }
-                            // Basic email format validation
-                            final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
-                            if (!emailRegex.hasMatch(trimmedValue)) {
-                              return 'Enter a valid email address';
-                            }
-                            return null;
-                          },
                         ),
-                        const SizedBox(height: 16),
-                        TextFormField(
-                          controller: _passwordController,
-                          decoration: const InputDecoration(
-                            labelText: 'Password',
-                            prefixIcon: Icon(Icons.lock_outline_rounded),
-                          ),
-                          obscureText: true,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Password is required';
-                            }
-                            if (value.length < 6) {
-                              return 'Password must be at least 6 characters';
-                            }
-                            return null;
-                          },
-                        ),
-                        if (_errorText != null) ...[
-                          const SizedBox(height: 16),
-                          Text(
-                            _errorText!,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(color: Colors.red[600]),
-                          ),
-                        ],
-                        const SizedBox(height: 24),
-                        FilledButton(
-                          onPressed: isLoading ? null : _submit,
-                          style: FilledButton.styleFrom(
-                            backgroundColor: BrandColors.primary,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                          ),
-                          child: isLoading
-                              ? const SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child:
-                                      CircularProgressIndicator(strokeWidth: 2),
-                                )
-                              : const Text('Sign in'),
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              "Don't have an account? ",
-                              style: TextStyle(color: Colors.grey[600]),
-                            ),
-                            TextButton(
-                              onPressed: () => context.go('/signup'),
-                              child: const Text(
-                                'Sign Up',
-                                style: TextStyle(
-                                  color: BrandColors.secondary,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        TextButton(
-                          onPressed: () {},
-                          child: const Text('Need help? Contact IT Support'),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ),
+              Container(
+                width: double.infinity,
+                color: Colors.transparent,
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      TextFormField(
+                        controller: _emailController,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.black87,
+                        ),
+                        decoration: InputDecoration(
+                          labelText: 'Email',
+                          labelStyle: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 16,
+                          ),
+                          prefixIcon: Icon(
+                            Icons.person_outline,
+                            color: Colors.deepOrange[400],
+                            size: 24,
+                          ),
+                          enabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.grey[300]!,
+                              width: 1,
+                            ),
+                          ),
+                          focusedBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.deepOrange[400]!,
+                              width: 2,
+                            ),
+                          ),
+                          errorBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.red[400]!,
+                              width: 1,
+                            ),
+                          ),
+                          focusedErrorBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.red[400]!,
+                              width: 2,
+                            ),
+                          ),
+                        ),
+                        keyboardType: TextInputType.emailAddress,
+                        textInputAction: TextInputAction.next,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Email is required';
+                          }
+                          final trimmedValue = value.trim();
+                          // Loosened validation to avoid blocking valid emails
+                          if (!trimmedValue.contains('@') || !trimmedValue.contains('.')) {
+                            return 'Enter a valid email address';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                      TextFormField(
+                        controller: _passwordController,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.black87,
+                        ),
+                        decoration: InputDecoration(
+                          labelText: 'Password',
+                          labelStyle: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 16,
+                          ),
+                          prefixIcon: Icon(
+                            Icons.lock_outline,
+                            color: Colors.deepOrange[400],
+                            size: 24,
+                          ),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscurePassword
+                                  ? Icons.visibility_outlined
+                                  : Icons.visibility_off_outlined,
+                              color: Colors.grey[600],
+                              size: 22,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _obscurePassword = !_obscurePassword;
+                              });
+                            },
+                          ),
+                          enabledBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.grey[300]!,
+                              width: 1,
+                            ),
+                          ),
+                          focusedBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.deepOrange[400]!,
+                              width: 2,
+                            ),
+                          ),
+                          errorBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.red[400]!,
+                              width: 1,
+                            ),
+                          ),
+                          focusedErrorBorder: UnderlineInputBorder(
+                            borderSide: BorderSide(
+                              color: Colors.red[400]!,
+                              width: 2,
+                            ),
+                          ),
+                        ),
+                        obscureText: _obscurePassword,
+                        textInputAction: TextInputAction.done,
+                        onFieldSubmitted: (_) => _submit(),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Password is required';
+                          }
+                          if (value.length < 6) {
+                            return 'Password must be at least 6 characters';
+                          }
+                          return null;
+                        },
+                      ),
+                      if (_errorText != null) ...[
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.red[50],
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.red[200]!),
+                          ),
+                          child: Text(
+                            _errorText!,
+                            style: TextStyle(
+                              color: Colors.red[700],
+                              fontSize: 14,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 32),
+                      FilledButton(
+                        onPressed: isLoading ? null : _submit,
+                        style: FilledButton.styleFrom(
+                          backgroundColor: Colors.deepOrange[400],
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 18),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: isLoading
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                              )
+                            : const Text(
+                                'Get Started',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                      ),
+                      const SizedBox(height: 24),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "Don't have an account? ",
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 14,
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () => context.go('/signup'),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                            ),
+                            child: Text(
+                              'Sign Up',
+                              style: TextStyle(
+                                color: Colors.deepOrange[400],
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
+}
+
+class _WaveClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+    path.lineTo(0, size.height - 60);
+    path.quadraticBezierTo(
+      size.width * 0.25,
+      size.height,
+      size.width * 0.5,
+      size.height - 40,
+    );
+    path.quadraticBezierTo(
+      size.width * 0.75,
+      size.height - 80,
+      size.width,
+      size.height - 30,
+    );
+    path.lineTo(size.width, 0);
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }

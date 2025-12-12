@@ -103,6 +103,7 @@ class SupabaseAuthService implements AuthService {
     required String password,
   }) async {
     try {
+      print('SupabaseAuthService: signIn called');
       // Validate inputs
       if (email.trim().isEmpty) {
         throw Exception('Email is required');
@@ -113,11 +114,14 @@ class SupabaseAuthService implements AuthService {
 
       // Trim and normalize email to avoid whitespace issues
       final trimmedEmail = email.trim().toLowerCase();
+      print('SupabaseAuthService: Signing in with email: $trimmedEmail');
       
       final response = await _supabase.auth.signInWithPassword(
         email: trimmedEmail,
         password: password,
       );
+      
+      print('SupabaseAuthService: Sign in response received, user: ${response.user?.id}');
 
       if (response.user != null) {
         final userId = response.user!.id;
